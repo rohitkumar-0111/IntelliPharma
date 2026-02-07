@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IntelliPharma | Enterprise Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Animated Aurora Background */
+        .aurora-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 50%, rgba(124, 58, 237, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(79, 70, 229, 0.15), transparent 25%);
+            filter: blur(40px);
+            animation: aurora 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes aurora {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Premium Glass Card */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* Message Bubbles */
+        .msg-bubble {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .msg-user {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border-radius: 20px 20px 4px 20px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .msg-ai {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 20px 20px 20px 4px;
+            box-shadow:
+                0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 2px 4px -1px rgba(0, 0, 0, 0.03),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            position: relative;
+        }
+
+        .msg-ai::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #d946ef);
+        }
+
+        /* Typography & Markdown */
+        .prose h1,
+        .prose h2,
+        .prose h3 {
+            background: linear-gradient(to right, #4f46e5, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+
+        .prose strong {
+            color: #4338ca;
+            font-weight: 600;
+        }
+
+        .prose ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .prose li {
+            position: relative;
+            padding-left: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        .prose li::before {
+            content: '•';
+            color: #8b5cf6;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .prose table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1.5em 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .prose th {
+            background: rgba(248, 250, 252, 0.8);
+            color: #475569;
+            font-weight: 600;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .prose td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(241, 245, 249, 0.8);
+            color: #334155;
+        }
+
+        .prose tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Input Area Glow */
+        .input-glow:focus-within {
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15), 0 0 20px rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        /* Animations */
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-pop {
+            animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.4);
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 antialiased selection:bg-purple-100 selection:text-purple-700">
+
+    <div class="aurora-bg"></div>
+
+    <!-- Main Layout -->
+    <div class="flex flex-col h-screen max-w-6xl mx-auto md:px-6 relative z-10">
+
+        <!-- Header -->
+        <header class="py-4 px-4 md:py-6 flex justify-between items-center animate-pop" style="animation-delay: 0.1s;">
+            <div class="flex items-center gap-4 glass-panel px-5 py-2.5 rounded-full">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-purple-500 blur-lg opacity-20 rounded-full"></div>
+                    <div
+                        class="relative bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-2.5 rounded-xl shadow-inner border border-white/10">
+                        <i data-lucide="dna" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1
+                        class="font-bold text-lg leading-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-purple-900">
+                        IntelliPharma
+                    </h1>
+                    <div class="flex items-center gap-1.5">
+                        <span class="relative flex h-2 w-2">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <span class="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Connected</span>
+                    </div>
+                </div>
+            </div>
+
+
+        </header>
+
+        <!-- Chat Container -->
+        <main id="chat-container" class="flex-1 overflow-y-auto px-4 py-2 space-y-6 scroll-smooth pb-32">
+
+            <!-- Welcome -->
+            <div class="flex justify-start animate-pop" style="animation-delay: 0.2s;">
+                <div class="msg-ai w-full max-w-2xl p-6 md:p-8">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span
+                            class="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-0.5 rounded border border-purple-200 uppercase tracking-wider">
+                            System Ready
+                        </span>
+                        <span class="text-xs text-slate-400">Just now</span>
+                    </div>
+                    <div class="prose prose-slate prose-sm md:prose-base max-w-none text-slate-600">
+                        <p class="text-lg font-medium text-slate-800">Welcome to <strong>IntelliPharma</strong>.</p>
+                        <p>I am capable of analyzing clinical data, reimbursement schemes, and comparative efficacy for
+                            the Indian market.</p>
+                        <p>Try asking: <em>"Compare Vildagliptin vs Sitagliptin"</em></p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Input Area -->
+        <div class="p-4 md:mb-6 animate-pop" style="animation-delay: 0.3s;">
+            <div
+                class="max-w-4xl mx-auto relative glass-panel rounded-[2rem] p-2 transition-all duration-300 input-glow">
+                <form id="chat-form" class="relative flex items-center">
+                    <input type="text" id="user-input"
+                        class="w-full bg-transparent border-none text-slate-700 text-base placeholder:text-slate-400 px-6 py-4 focus:ring-0 focus:outline-none"
+                        placeholder="Query the clinical database..." autocomplete="off">
+                    <button type="submit" id="send-btn"
+                        class="mr-2 p-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group">
+                        <i data-lucide="arrow-up" class="w-5 h-5 group-hover:-translate-y-0.5 transition-transform"></i>
+                    </button>
+                </form>
+            </div>
+            <p class="text-center text-[10px] text-slate-400 mt-3 font-medium tracking-wide">
+                CONFIDENTIAL • INTERNAL DATASETS ONLY • CDSCO COMPLIANT
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM loaded, initializing chat...");
+
+            try {
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                } else {
+                    console.warn("Lucide icons not loaded");
+                }
+            } catch (e) {
+                console.error("Lucide init failed:", e);
+            }
+
+            const chatContainer = document.getElementById('chat-container');
+            const chatForm = document.getElementById('chat-form');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+
+            if (!chatForm) {
+                console.error("Chat form not found!");
+                return;
+            }
+
+            const scrollToBottom = () => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            const addMessage = (role, content) => {
+                const div = document.createElement('div');
+                div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-pop`;
+
+                if (role === 'user') {
+                    div.innerHTML = `
+                        <div class="msg-user max-w-[85%] md:max-w-[70%] p-4 md:p-5 text-sm md:text-base leading-relaxed">
+                            ${content}
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="msg-ai w-full max-w-2xl p-6 md:p-8">
+                            <div class="flex items-center gap-2 mb-4 opacity-50">
+                                <i data-lucide="bot" class="w-4 h-4"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider">IntelliPharma</span>
+                            </div>
+                            <div class="prose prose-slate prose-sm md:prose-base max-w-none text-slate-600 markdown-content">
+                                ${marked.parse(content)}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                chatContainer.appendChild(div);
+                try { lucide.createIcons(); } catch (e) { }
+                scrollToBottom();
+
+                if (role === 'assistant') return div.querySelector('.markdown-content');
+            };
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // CRITICAL: Stop reload
+                console.log("Form submitted");
+
+                const message = userInput.value.trim();
+                if (!message) return;
+
+                // User UI
+                addMessage('user', message);
+                userInput.value = '';
+
+                // Loading UI
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = "flex justify-start animate-pop";
+                loadingDiv.innerHTML = `
+                    <div class="msg-ai w-full max-w-2xl p-6 flex items-center gap-3">
+                        <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>
+                `;
+                chatContainer.appendChild(loadingDiv);
+                scrollToBottom();
+
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}`);
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+
+                    // message container (don't add yet)
+                    let aiMsgContainer = null;
+                    let buffer = "";
+                    let isFirstChunk = true;
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        // Remove loader on first bit of data
+                        if (isFirstChunk) {
+                            loadingDiv.remove();
+                            // Create the AI message container now
+                            aiMsgContainer = addMessage('assistant', '');
+                            isFirstChunk = false;
+                        }
+
+                        const chunk = decoder.decode(value, { stream: true });
+                        buffer += chunk;
+
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop(); // Keep incomplete line
+
+                        for (const line of lines) {
+                            if (!line.trim()) continue;
+                            try {
+                                const json = JSON.parse(line);
+                                if (json.type === 'agent') {
+                                    aiMsgContainer.innerHTML = marked.parse(json.content);
+                                    scrollToBottom();
+                                }
+                            } catch (err) {
+                                console.warn("JSON parse error:", err);
+                            }
+                        }
+                    }
+
+                    // Process remaining buffer
+                    if (buffer.trim()) {
+                        try {
+                            const json = JSON.parse(buffer);
+                            if (json.type === 'agent') {
+                                if (!aiMsgContainer) {
+                                    loadingDiv.remove();
+                                    aiMsgContainer = addMessage('assistant', '');
+                                }
+                                aiMsgContainer.innerHTML = marked.parse(json.content);
+                                scrollToBottom();
+                            }
+                        } catch (err) { }
+                    }
+
+                    // If we finished without any data (and no error thrown yet)
+                    if (isFirstChunk && !aiMsgContainer) {
+                        loadingDiv.remove();
+                    }
+
+                } catch (err) {
+                    console.error("Fetch error:", err);
+                    loadingDiv.remove();
+                    addMessage('assistant', `**Connection Error**: ${err.message}.\n\nPlease check if Ollama is running.`);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
