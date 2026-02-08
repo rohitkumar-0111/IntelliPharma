@@ -34,9 +34,8 @@ env/
 .env.*.local
 
 # Database
-*.db
 *.sqlite3
-pharma_agent.db
+# pharma_agent.db (Uncomment to ignore if using Cloud DB)
 chroma_db/
 
 # Logs
