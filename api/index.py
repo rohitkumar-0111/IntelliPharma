@@ -18,8 +18,9 @@ templates = Jinja2Templates(directory="templates")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: create tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Commented out for Vercel: Database is pre-seeded and filesystem might be read-only
+    # async with engine.begin() as conn:
+    #     await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown: close connection
     await engine.dispose()

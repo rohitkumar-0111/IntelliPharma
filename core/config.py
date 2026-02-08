@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    # Use absolute path for Vercel/Cloud to locate the DB file reliably if not set
+    # OR better: default to local sqlite file
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///pharma_agent.db")
     OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
     OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
     
