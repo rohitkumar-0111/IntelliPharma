@@ -67,6 +67,9 @@ CRITICAL CONTENT RULES
     - NO CPT or HCPCS codes.
     - If internal data is missing, DO NOT MAKE UP INFORMATION.
 - ONLY PROVIDE DATA IF IT IS PRESENT IN THE CONTEXT.
+- FOR COMPARISONS: If the user asks to compare drugs or asks for the difference, YOU MUST PRESENT THE DATA IN A MARKDOWN TABLE.
+    - Columns: Feature (Uses, Dosage, Side Effects, etc.), Drug A, Drug B, etc.
+    - Be concise in the table cells.
 """
 
 import requests
@@ -88,26 +91,33 @@ async def node_agent(state: AgentState):
     
     # 1. Attempt Drug Extraction
     try:
-        extraction_prompt = f"Extract the drug name from this query: '{user_query}'. Return ONLY the drug name. Do not write 'The drug is' or any other text. If no drug is mentioned, return 'None'."
+        extraction_prompt = (
+            f"Extract ALL drug names from this query: '{user_query}'. "
+            "Return them as a comma-separated list. "
+            "Example: 'aspirin, paracetamol'. "
+            "If no drug is mentioned, return 'None'. "
+            "Do not add any other text."
+        )
         extraction_response = await llm.ainvoke([HumanMessage(content=extraction_prompt)])
-        drug_name = extraction_response.content.strip().replace("'", "").replace('"', "").replace("The drug name is: ", "").replace("The drug is ", "").strip()
+        drug_names_str = extraction_response.content.strip().replace("'", "").replace('"', "").replace("The drug names are: ", "").strip()
         
-        if drug_name and drug_name.lower() != "none":
-            extracted_drug = drug_name
+        if drug_names_str and drug_names_str.lower() != "none":
+            extracted_drug = drug_names_str # Now can be "drug1, drug2"
             with open("debug.log", "a") as f:
                 f.write(f"\n[Agent] Extracted: {extracted_drug}\n")
-            print(f"DEBUG: Extracted drug name: {extracted_drug}")
+            print(f"DEBUG: Extracted drug names: {extracted_drug}")
     except Exception as e:
         print(f"DEBUG: Extraction failed: {e}")
 
     # 2. Retrieve Data (If drug found OR keywords present)
     
     # Clinical Data
-    if extracted_drug or any(k in lower_query for k in ["what is", "dose", "side effect", "use", "price"]):
+    if extracted_drug or any(k in lower_query for k in ["what is", "dose", "side effect", "use", "price", "compare", "difference"]):
         try:
             # If we have a drug name, use it for specific lookup, otherwise use query
+            # get_drug_details now handles comma-separated strings
             search_term = extracted_drug if extracted_drug else user_query
-            clinical_results = await lookup_clinical_data.ainvoke(search_term)
+            clinical_results = await get_drug_details.ainvoke(search_term)
             if clinical_results:
                 context += f"\n\n### Internal Clinical Guidelines:\n{clinical_results}"
         except Exception as e:
