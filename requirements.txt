@@ -8,3 +8,6 @@ langgraph
 aiosqlite
 requests
 jinja2
+openai
+tiktoken
+greenlet
