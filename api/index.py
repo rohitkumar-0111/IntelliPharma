@@ -50,6 +50,7 @@ async def chat_endpoint(request: ChatRequest):
     """
     Chat endpoint that streams the agent's response.
     """
+    print(f"DEBUG: Processing chat request: {request.message}")
     try:
         inputs = {"messages": [HumanMessage(content=request.message)]}
         # Config for thread_id if needed in the future for persistence
@@ -57,44 +58,67 @@ async def chat_endpoint(request: ChatRequest):
 
         # Generator for streaming response
         async def event_generator():
-            # Stream events from the graph
-            # We use astream_events or astream depending on what we want to send back.
-            # Here we want to stream the final answer tokens if possible, or intermediate steps.
-            # Using astream gives updates on state keys.
-            
-            # Simple streaming of the final LLM response is tricky with LangGraph unless we use a callback or specific streaming mode.
-            # For this Phase, let's stream the final message content chunk by chunk if LangGraph supports it, 
-            # OR just stream the node updates. 
-            
-            # Better approach for Vercel timeout prevention: Stream intermediate steps.
-            async for event in agent_app.astream(inputs, config=config):
-                print(f"DEBUG: Event received: {event.keys()}")
-                for key, value in event.items():
-                    # We can categorize events. 
-                    # If it's from 'agent', it usually contains the AIMessage.
-                    if key == "agent":
-                        # This node returns "messages": [response]
-                        messages = value.get("messages", [])
-                        if messages:
-                            last_msg = messages[-1]
-                            content = last_msg.content if hasattr(last_msg, 'content') else str(last_msg)
-                            print(f"DEBUG: Yielding content length: {len(content)}")
-                            # Send the full content as a chunk (or we could try token streaming if we bind streaming=True to LLM)
-                            # To properly stream tokens, we'd need to use .astream_events() which is more granular.
-                            # For now, let's send node outputs.
-                            yield json.dumps({"type": "agent", "content": content}) + "\n"
-                    elif key == "tools":
-                        # Tool outputs
-                        messages = value.get("messages", [])
-                        if messages and isinstance(messages[-1], ToolMessage):
-                             yield json.dumps({"type": "tool", "content": "Executing tool..."}) + "\n"
-                             # Optionally send the tool result if needed, but usually user just wants the final answer.
+            print("DEBUG: Starting event generator")
+            try:
+                # Stream events from the graph
+                async for event in agent_app.astream(inputs, config=config):
+                    print(f"DEBUG: Event received: {event.keys()}")
+                    for key, value in event.items():
+                        # We can categorize events. 
+                        # If it's from 'agent', it usually contains the AIMessage.
+                        if key == "agent":
+                            # This node returns "messages": [response]
+                            messages = value.get("messages", [])
+                            if messages:
+                                last_msg = messages[-1]
+                                content = last_msg.content if hasattr(last_msg, 'content') else str(last_msg)
+                                print(f"DEBUG: Yielding content length: {len(content)}")
+                                yield json.dumps({"type": "agent", "content": content}) + "\n"
+                        elif key == "tools":
+                            # Tool outputs
+                            print("DEBUG: Tool executed")
+                            messages = value.get("messages", [])
+                            if messages and isinstance(messages[-1], ToolMessage):
+                                 yield json.dumps({"type": "tool", "content": "Executing tool..."}) + "\n"
+            except Exception as stream_err:
+                print(f"CRITICAL STREAM ERROR: {stream_err}")
+                import traceback
+                traceback.print_exc()
+                yield json.dumps({"type": "agent", "content": f"**System Error**: {str(stream_err)}"}) + "\n"
 
         return StreamingResponse(event_generator(), media_type="application/x-ndjson")
 
     except Exception as e:
+        print(f"CRITICAL ENDPOINT ERROR: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok"}
+
+@app.get("/api/debug")
+async def debug_endpoint():
+    import os
+    import sys
+    
+    # Check DB File
+    db_path = "pharma_agent.db"
+    db_exists = os.path.exists(db_path)
+    db_size = os.path.getsize(db_path) / (1024*1024) if db_exists else 0
+    
+    # Check API Key
+    api_key = settings.OPENROUTER_API_KEY
+    has_key = bool(api_key and api_key.startswith("sk-or"))
+    
+    return {
+        "status": "debug",
+        "cwd": os.getcwd(),
+        "files_in_root": os.listdir("."),
+        "db_exists": db_exists,
+        "db_size_mb": db_size,
+        "has_api_key": has_key,
+        "python_version": sys.version,
+        "env_vars": {k: v for k, v in os.environ.items() if k.startswith("VERCEL") or k in ["OLLAMA_BASE_URL", "DATABASE_URL"]}
+    }
